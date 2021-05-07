@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <Configuration name="${sys:LOG_FILE}" status="WARN" strict="true" monitorInterval="30"> -->
+<Configuration name="${sys:LOG_FILE}" status="WARN"
+	strict="true">
+	<Properties>
+		<Property name="ROLLING_LOG_FILE_NAME"
+			value="${sys:LOG_FILE}" />
+		<Property name="APP_LOG_FOLDER"
+			value="${ROLLING_LOG_FILE_NAME}" />
+		<Property name="APP_LOG_BASE_DIRECTORY"
+			value="${sys:dtep.logs.home}${sys:file.separator}${APP_LOG_FOLDER}" />
+		<Property name="CONSOLE_LOG_PATTERN"
+			value="%date{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%5level} %style{%5processId}{normal, blue} --- [%15thread] %style{%logger{1.}}{normal, cyan} : %message%n%throwable%n" />
+		<Property name="FILE_LOG_PATTERN"
+			value="%date{yyyy-MM-dd HH:mm:ss.SSS} %5level %5processId --- [%15thread] %logger{1.} : %message%n%throwable%n" />
+		<!-- <Property name="APP_LOG_BASE_DIRECTORY" value="$${sys:catalina.home}/logs/dtep" 
+			/> -->
+		<!-- <Property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%t] %-5level 
+			%logger{36} - %msg%n" /> -->
+	</Properties>
+	<Appenders>
+		<Appender type="Console" name="Console" target="SYSTEM_OUT">
+			<Layout type="PatternLayout" pattern="${CONSOLE_LOG_PATTERN}" />
+		</Appender>
+		<Appender type="RollingFile" name="RollingFile"
+			fileName="${APP_LOG_BASE_DIRECTORY}${sys:file.separator}${ROLLING_LOG_FILE_NAME}.log"
+			filePattern="${APP_LOG_BASE_DIRECTORY}${sys:file.separator}$${date:yyyy}${sys:file.separator}$${date:MMM}${sys:file.separator}${ROLLING_LOG_FILE_NAME}_%d{yyyy-MM-dd}_%i.log">
+			<Layout type="PatternLayout" pattern="${FILE_LOG_PATTERN}" />
+			<Policies>
+				<!-- <TimeBasedTriggeringPolicy /> -->
+				<!-- <SizeBasedTriggeringPolicy size="250 MB" /> -->
+				<Policy type="TimeBasedTriggeringPolicy" />
+				<Policy type="SizeBasedTriggeringPolicy" size="1KB" />
+			</Policies>
+			<Strategy type="DefaultRolloverStrategy" fileIndex="nomax">
+				<Delete basePath="${APP_LOG_BASE_DIRECTORY}" maxDepth="5"
+					testMode="false">
+					<IfFileName
+						glob="**${sys:file.separator}${ROLLING_LOG_FILE_NAME}_*.log">
+						<IfLastModified age="1m">
+							<IfAny>
+								<IfAccumulatedFileSize exceeds="3 KB" />
+								<IfAccumulatedFileCount exceeds="3" />
+							</IfAny>
+						</IfLastModified>
+					</IfFileName>
+				</Delete>
+			</Strategy>
+		</Appender>
+	</Appenders>
+	<Loggers>
+		<Root level="TRACE">
+			<AppenderRef ref="Console">
+				<Filters>
+					<Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT"
+						onMismatch="DENY" />
+				</Filters>
+			</AppenderRef>
+			<AppenderRef ref="RollingFile">
+				<Filters>
+					<Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT"
+						onMismatch="DENY" />
+				</Filters>
+			</AppenderRef>
+		</Root>
+		<AsyncLogger name="org.springframework" level="INFO"
+			additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="RollingFile" />
+		</AsyncLogger>
+		<AsyncLogger name="org.hibernate" level="INFO"
+			additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="RollingFile" />
+		</AsyncLogger>
+	</Loggers>
+</Configuration>
